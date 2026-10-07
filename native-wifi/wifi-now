@@ -1,0 +1,20 @@
+#!/bin/sh
+# Launch through Launch Services so macOS attributes location access to the app.
+set -eu
+bundle=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+result_dir=$(mktemp -d "${TMPDIR:-/tmp}/wifi-now.XXXXXXXX")
+trap 'rm -rf "$result_dir"' EXIT HUP INT TERM
+if ! /usr/bin/open -n -g -W --stdout "$result_dir/result.json" --stderr "$result_dir/stderr" "$bundle" --args --json --status-file "$result_dir/status"; then
+    printf '%s\n' '{"ok":false,"ssid":null,"location":null,"errors":["launch_failed"]}'
+    exit 2
+fi
+if [ ! -s "$result_dir/result.json" ] || [ ! -f "$result_dir/status" ]; then
+    printf '%s\n' '{"ok":false,"ssid":null,"location":null,"errors":["invalid_response"]}'
+    exit 2
+fi
+cat "$result_dir/result.json"
+status=$(cat "$result_dir/status")
+case "$status" in
+    0|1|2) exit "$status" ;;
+    *) exit 2 ;;
+esac

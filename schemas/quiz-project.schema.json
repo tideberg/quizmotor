@@ -1,0 +1,565 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "quiz-project.schema.json",
+  "title": "Quizprojekt",
+  "description": "Det portabla formatet för quiz.json. Filer refereras relativt projektmappen.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "format",
+    "version",
+    "id",
+    "name",
+    "savedAt",
+    "questions",
+    "show",
+    "branding"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "quiz-project.schema.json"
+    },
+    "format": {
+      "const": "quiz-project"
+    },
+    "version": {
+      "const": 3
+    },
+    "id": {
+      "$ref": "#/definitions/projectId"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "savedAt": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "questions": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "$ref": "#/definitions/question"
+      }
+    },
+    "show": {
+      "$ref": "#/definitions/show"
+    },
+    "branding": {
+      "$ref": "#/definitions/branding"
+    }
+  },
+  "definitions": {
+    "projectId": {
+      "type": "string",
+      "pattern": "^[a-f0-9-]{36}$"
+    },
+    "asset": {
+      "type": ["string", "null"],
+      "pattern": "^assets/[a-f0-9-]+\\.(wav|mp3|m4a|ogg|flac|aac|png|jpg|webp|mp4|webm|mov)$"
+    },
+    "audioAsset": {
+      "type": ["string", "null"],
+      "pattern": "^assets/[a-f0-9-]+\\.(wav|mp3|m4a|ogg|flac|aac)$"
+    },
+    "imageAsset": {
+      "type": ["string", "null"],
+      "pattern": "^assets/[a-f0-9-]+\\.(png|jpg|webp)$"
+    },
+    "videoAsset": {
+      "type": ["string", "null"],
+      "pattern": "^assets/[a-f0-9-]+\\.(mp4|webm|mov)$"
+    },
+    "appleTrack": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["persistentId", "name", "artist", "duration"],
+      "properties": {
+        "persistentId": {
+          "type": "string",
+          "pattern": "^([A-F0-9]{16})?$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "artist": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "catalogId": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,19}$"
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://music\\.apple\\.com/[a-z]{2}/song/[1-9][0-9]{0,19}$"
+        },
+        "album": {
+          "type": "string",
+          "maxLength": 300
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "persistentId": {
+                "const": ""
+              }
+            }
+          },
+          "then": {
+            "required": ["catalogId", "url"]
+          }
+        }
+      ]
+    },
+    "cue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "at", "text", "image", "video"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9-]{1,80}$"
+        },
+        "at": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 599
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "image": {
+          "$ref": "#/definitions/imageAsset"
+        },
+        "video": {
+          "$ref": "#/definitions/videoAsset"
+        }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "image": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "properties": {
+            "video": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "prompt",
+        "answer",
+        "explanation",
+        "hint",
+        "kind",
+        "duration",
+        "maxPoints",
+        "offset",
+        "audio",
+        "image",
+        "picture",
+        "video",
+        "audioSource",
+        "appleMusic",
+        "cues",
+        "example"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9-]{1,80}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "answer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "explanation": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "hint": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "kind": {
+          "enum": ["music", "bonus", "wager"]
+        },
+        "duration": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 600
+        },
+        "maxPoints": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7200
+        },
+        "audio": {
+          "$ref": "#/definitions/audioAsset"
+        },
+        "image": {
+          "$ref": "#/definitions/imageAsset"
+        },
+        "picture": {
+          "$ref": "#/definitions/imageAsset"
+        },
+        "video": {
+          "$ref": "#/definitions/videoAsset"
+        },
+        "audioSource": {
+          "enum": ["local", "appleMusic"]
+        },
+        "appleMusic": {
+          "$ref": "#/definitions/appleTrack"
+        },
+        "cues": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "$ref": "#/definitions/cue"
+          }
+        },
+        "example": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "audioSource": {
+                "const": "appleMusic"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "appleMusic": {
+                "type": "object"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "appleMusic": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "show": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "musicVolume",
+        "talkVolume",
+        "talking",
+        "bedVolume",
+        "effectVolume",
+        "bedAudio",
+        "closingAudio",
+        "bedEnabled"
+      ],
+      "properties": {
+        "musicVolume": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "talkVolume": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "talking": {
+          "type": "boolean"
+        },
+        "bedVolume": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "effectVolume": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "bedTracks": {
+          "type": "array",
+          "maxItems": 30,
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              { "$ref": "#/definitions/audioAsset" },
+              { "type": "string" }
+            ]
+          }
+        },
+        "bedAudio": {
+          "$ref": "#/definitions/audioAsset"
+        },
+        "closingAudio": {
+          "$ref": "#/definitions/audioAsset"
+        },
+        "bedEnabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "branding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "brandName",
+        "subtitle",
+        "welcomeTitle",
+        "welcomeText",
+        "joinTitle",
+        "joinText",
+        "teamPlaceholder",
+        "hostEyebrow",
+        "hostTitle",
+        "questionsText",
+        "readyTitle",
+        "leaderboardTitle",
+        "finalTitle",
+        "intermissionText",
+        "closingText",
+        "footer",
+        "teamFooter",
+        "timesUpLabel",
+        "timesUpTitle",
+        "theme",
+        "logo",
+        "backdrop"
+      ],
+      "properties": {
+        "brandName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Logotyptext"
+        },
+        "subtitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Underrubrik / kvällens namn"
+        },
+        "welcomeTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Välkomstrubrik på storbild"
+        },
+        "welcomeText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "Introduktion / bilda lag"
+        },
+        "joinTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Rubrik på lagmobilen"
+        },
+        "joinText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "Introduktion på lagmobilen"
+        },
+        "teamPlaceholder": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "Exempel på lagnamn"
+        },
+        "hostEyebrow": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Regi: överrubrik"
+        },
+        "hostTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Regi: hälsning"
+        },
+        "questionsText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300,
+          "description": "Körschemats introduktion"
+        },
+        "readyTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Inför en fråga"
+        },
+        "leaderboardTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Poängtavlans rubrik"
+        },
+        "finalTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Slutresultatets rubrik"
+        },
+        "intermissionText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Mellan frågorna"
+        },
+        "closingText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Avslutningshälsning"
+        },
+        "footer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Sidfot"
+        },
+        "teamFooter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Sidfot på lagmobilen"
+        },
+        "timesUpLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60,
+          "description": "När tiden tar slut: överrubrik"
+        },
+        "timesUpTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "När tiden tar slut: rubrik (radbrytning tillåten)"
+        },
+        "theme": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "background",
+            "surface",
+            "foreground",
+            "muted",
+            "accent",
+            "board",
+            "alert",
+            "symbol",
+            "typography",
+            "pattern"
+          ],
+          "properties": {
+            "background": {
+              "type": "string",
+              "pattern": "^#[a-fA-F0-9]{6}$"
+            },
+            "surface": {
+              "type": "string",
+              "pattern": "^#[a-fA-F0-9]{6}$"
+            },
+            "foreground": {
+              "type": "string",
+              "pattern": "^#[a-fA-F0-9]{6}$"
+            },
+            "muted": {
+              "type": "string",
+              "pattern": "^#[a-fA-F0-9]{6}$"
+            },
+            "accent": {
+              "type": "string",
+              "pattern": "^#[a-fA-F0-9]{6}$"
+            },
+            "board": {
+              "type": "string",
+              "pattern": "^#[a-fA-F0-9]{6}$"
+            },
+            "alert": {
+              "type": "string",
+              "pattern": "^#[a-fA-F0-9]{6}$"
+            },
+            "symbol": {
+              "enum": ["audio", "leaf", "snowflake", "compass", "star"]
+            },
+            "typography": {
+              "enum": ["sans", "serif", "mono"]
+            },
+            "pattern": {
+              "enum": ["diagonal", "dots", "stars", "grid", "none"]
+            }
+          }
+        },
+        "logo": {
+          "$ref": "#/definitions/imageAsset"
+        },
+        "backdrop": {
+          "$ref": "#/definitions/imageAsset"
+        }
+      }
+    }
+  }
+}
